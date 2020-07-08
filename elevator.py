@@ -6,6 +6,12 @@ class Elevator(object):
         self.recall_floor = recall_floor
         self.doors_open = False
         self.log = []
+        self.request_log = []
+
+    def recieve_request(self, request_id, pickup_floor):
+        self.destination = pickup_floor
+        self.request_log.append(request_id)
+        self.request_id = request_id
 
     def move(self):
         if self.location > self.destination: 
@@ -22,6 +28,9 @@ class Elevator(object):
     def open_doors(self, tick_number):
         self.doors_open = True
         self.door_open_tick = tick_number
+        request_id = self.request_id
+        del self.request_id
+        return request_id
 
     def close_doors(self):
         self.doors_open = False
