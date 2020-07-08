@@ -1,39 +1,48 @@
+from request import Request
+
 class Elevator(object):
-    def __init__(self, recall_floor=False):
+    def __init__(self, recall_floor=0):
+        self.requests = []
+        self.recall_floor = recall_floor
         self.location = 0
         self.destination = 0
-        self.route = []
-        self.recall_floor = recall_floor
         self.doors_open = False
-        self.log = []
-        self.request_log = []
+        self.doors_open_tick = -1
+        self.active_request = Request(-1, 0, 0, -1, True, True)
 
-    def recieve_request(self, request_id, pickup_floor):
-        self.destination = pickup_floor
-        self.request_log.append(request_id)
-        self.request_id = request_id
-
-    def move(self):
+    def move(self, tick_number):
         if self.location > self.destination: 
             self.location -= 1
         elif self.location < self.destination:
             self.location += 1
-        else: 
-            if self.recall_floor:
-                if self.location < self.recall_floor: 
-                    self.location += 1
-                elif self.location > self.recall_floor: 
-                    self.location -= 1
-        
-    def open_doors(self, tick_number):
-        self.doors_open = True
-        self.door_open_tick = tick_number
-        request_id = self.request_id
-        del self.request_id
-        return request_id
+        if self.active_request.satisfied == False:
+            if self.location == self.active_request.pickup \
+                        and self.active_request.in_progress == False: 
+                if self.doors_open == False: 
+                    self.doors_open = True
+                    self.doors_open_tick = tick_number
+                else: 
+                    if self.doors_open_tick <= tick_number - 3: 
+                        self.doors_open = False
+                        self.destination = self.active_request.destination
+                        self.active_request.in_progress = True
+            elif self.location == self.active_request.destination \
+                        and self.active_request.in_progress == True:
+                if self.doors_open == False: 
+                    self.doors_open = True
+                    self.doors_open_tick = tick_number
+                else: 
+                    if self.doors_open_tick <= tick_number - 3: 
+                        self.doors_open = False
+                        self.destination = self.recall_floor
+                        self.active_request.satisfied = True
+                        if len(self.requests) != 0: 
+                            self.active_request = self.requests.pop()
+                            import pdb
+                            pdb.set_trace()
 
-    def close_doors(self):
-        self.doors_open = False
-        del self.door_open_tick
-        if len(self.route) != 0:
-            self.destination = self.route.pop()
+    def process_new_request(self, request):
+        self.requests.append(request)
+        if self.active_request.satisfied:
+            self.active_request = self.requests.pop()
+            self.destination = self.active_request.pickup

@@ -1,11 +1,9 @@
-from floor import Floor
 from elevator import Elevator
+from request import Request
 from sys import maxsize
 
 class Manager(object):
-    def __init__(self, n_floors, n_elevators, instruction_filename, \
-            floors=[], elevators=[]):
-        self.floors = []
+    def __init__(self, n_floors, n_elevators, instruction_filename):
         self.elevators = []
         self.requests = []
         self.cleanup = False
@@ -15,20 +13,17 @@ class Manager(object):
         self.tick_number = 0
         self.request_id = 0
 
-        if floors == [] and elevators == []:
-            for i in range(n_floors):
-                self.floors.append(Floor(i))
-            for _ in range(n_elevators): 
-                self.elevators.append(Elevator(0))
-        else: 
-            self.floors = floors
-            self.elevators = elevators
+        for _ in range(n_elevators): 
+            self.elevators.append(Elevator(0))
 
     def tick(self, instructions=[]):
+        print("Tick {}".format(str(self.tick_number)))
+        for i, elevator in enumerate(self.elevators):
+            print("Elevator {} on floor {}.".format(str(i), str(elevator.location)))
         self._parse_and_request(instructions)
-        self._check_floors()
         self._schedule()
-        self._process_elevators()
+        for elevator in self.elevators: 
+            elevator.move(self.tick_number)
 
         self.tick_number += 1
         if self.tick_number == maxsize:
@@ -39,49 +34,21 @@ class Manager(object):
         return False
 
     def _parse_and_request(self, instructions):
-        for instruction in instructions:
-            if instruction[1] == 'u':
-                self.floors[int(instruction[0])].new_up_call()
-            elif instruction[1] == 'd':
-                self.floors[int(instruction[0])].new_down_call()
-
-    def _process_elevators(self):
-        for elevator in self.elevators:
-            if elevator.doors_open == False:
-                elevator.move()
-            elif elevator.door_open_tick >= self.tick_number + 3:
-                elevator.close_doors()
-
-            if elevator.destination == elevator.location:
-                request_id = elevator.open_doors(self.tick_number)
-                for request in self.requests:
-                    if request['request_id'] == request_id:
-                        del request
-
+        requests = [x.split(' ') for x in instructions]
+        for instruction in requests: 
+            self.requests.append(Request(self.request_id, int(instruction[0]), int(instruction[1]), self.tick_number, False, False))
         
     def _schedule(self):
         for request in self.requests:
-            import pdb
-            pdb.set_trace()
-
-    def _check_floors(self):
-        for i, floor in enumerate(self.floors):
-            if floor.up_state == True:
-                self.requests.append({'direction': 'up', 'tick_called': self.tick_number, 'floor': floor.floor_number, 'scheduled': False, 'request_id': self.request_id})
-                self.request_id += 1
-            if floor.down_state == True:
-                self.requests.append({'direction': 'down', 'tick_called': self.tick_number, 'floor': floor.floor_number, 'scheduled': False, 'request_id': self.request_id})
-                self.request_id += 1
-            floor.clear_new_call()
+            self.elevators[0].process_new_request(request)
 
     def start_run(self):
-        with open(self.instruction_filename) as f: 
-                for line in f.readlines():
-                    self.tick(line.split())
+        for line in f.readlines():
+            self.tick(line.split(','))
 
         done = False
         while done == False:
-            end = input('tick {}'.format(self.tick_number))
+            end = input()
             if end == 'end':
                 self.end_run()
             done = self.tick()
