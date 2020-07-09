@@ -16,7 +16,7 @@ class Manager(object):
         for _ in range(n_elevators): 
             self.elevators.append(Elevator(0))
 
-    def tick(self, instructions=[]):
+    def tick(self):
         print("Tick {}".format(str(self.tick_number)))
         for i, elevator in enumerate(self.elevators):
             print("Elevator {} on floor {}.".format(str(i), str(elevator.location)))
@@ -43,9 +43,6 @@ class Manager(object):
             self.elevators[0].process_new_request(request)
 
     def start_run(self):
-        for line in f.readlines():
-            self.tick(line.split(','))
-
         done = False
         while done == False:
             end = input()
