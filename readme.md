@@ -1,0 +1,1 @@
+The input instructions file should contain one line per tick, with instructions in the form `x y` where `x` is the origin floor of the request and `y` is the destination floor. Multiple requests per tick can be comma separated. See example.txt

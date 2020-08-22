@@ -1,4 +1,4 @@
-from elevator import Elevator
+ffrom elevator import Elevator
 from request import Request
 from sys import maxsize
 
@@ -20,7 +20,7 @@ class Manager(object):
         print("Tick {}".format(str(self.tick_number)))
         for i, elevator in enumerate(self.elevators):
             print("Elevator {} on floor {}.".format(str(i), str(elevator.location)))
-        self._parse_and_request(instructions)
+        self._parse_and_request()
         self._schedule()
         for elevator in self.elevators: 
             elevator.move(self.tick_number)
@@ -28,15 +28,14 @@ class Manager(object):
         self.tick_number += 1
         if self.tick_number == maxsize:
             self.tick_number = 0
-
-        if self.cleanup: 
             return not bool(self.requests)
         return False
 
-    def _parse_and_request(self, instructions):
-        requests = [x.split(' ') for x in instructions]
-        for instruction in requests: 
-            self.requests.append(Request(self.request_id, int(instruction[0]), int(instruction[1]), self.tick_number, False, False))
+    def _parse_and_request(self):
+        with open(self.instruction_filename) as f: 
+            requests = f.readlines()[self.tick_number].split(' ')
+        for request in requests: 
+            self.requests.append(Request(self.request_id, int(request[0]), int(request[1]), self.tick_number, False, False))
         
     def _schedule(self):
         for request in self.requests:
