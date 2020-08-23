@@ -1,0 +1,1 @@
+This version was my first attempt. I quickly lost track of what was going on where, and needed to restart. The framework was acceptable, but I thought about how to parse and process lines of an instructions file too late. Indeed, I thought about the very nature of the instructions file itself far too late. 
