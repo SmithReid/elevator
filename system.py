@@ -1,7 +1,3 @@
-'''
-TODO: manage storing of active requests better
-'''
-
 from elevator import Elevator
 from request import Request
 
@@ -12,13 +8,21 @@ class System(object):
         self.elevators = []
         for i in range(n_elevators): 
             self.elevators.append(Elevator(i, self.n_floors // 2))
-        self.active_requests = {}
+        self.active_requests = []
 
 
     def tick(self, line):
         for request_pair in line:
             request = Request(request_pair[0], request_pair[1])
             self._assign_request(request)
+
+        for elevator in self.elevators:
+            if elevator.relative_destination != 0:
+                self._move_elevator(elevator)
+            else: 
+                self._elevator_at_destination(elevator)
+
+        # TODO: stuff
 
         '''
         TODO: move elevators, open doors, and close doors as appropriate
@@ -49,4 +53,21 @@ class System(object):
 
         request.elevator = distance_to_elevator_from_origin.index(\
                                 min(distance_to_elevator_from_origin))
-        self.active_requests[self.elevators[request.elevator].id_num] = request
+        self.active_requests.append(request)
+
+    def _elevator_at_destination(self, elevator):
+        pass
+
+    def _move_elevator(self, elevator):
+        if elevator.relative_destination > 0: 
+            elevator.current_floor += 1
+        elif elevator.relative_destination < 0:
+            elevator.current_floor -= 1
+
+
+
+
+
+
+
+
