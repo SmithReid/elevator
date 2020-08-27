@@ -18,7 +18,7 @@ class System(object):
 
         for elevator in self.elevators:
             if elevator.relative_destination != 0:
-                self._move_elevator(elevator)
+                self._move_elevator_as_necessary(elevator)
             else: 
                 self._elevator_at_destination(elevator)
 
@@ -37,32 +37,64 @@ class System(object):
 
     def _assign_request(self, request):
         '''
+        This function takes a request as an input and assigns that request to an elevator
+        
+        At a more technical level, it checks each elevator for whether that elevator 
+            is appropriate for this request, chooses the closest elevator going the 
+            right way AND without too much distance to cover before satisfying the 
+            newest request. 
+        '''
+        '''
         TODO: assign requests more evenly across elevators
         '''
         distance_to_elevator_from_origin = []
         for elevator in self.elevators:
             distance_to_elevator_from_origin.append(request.origin - elevator.current_floor)
 
-        is_elevator_going_right_way = [True for elevator in self.elevators]
+        is_elevator_eligible = [True for elevator in self.elevators]
 
         # Eliminate elevators going in the wrong direction
         for i, distance in enumerate(distance_to_elevator_from_origin):
-            if (request.relative_destination ^ distance) < 0: 
+            if (request.relative_destination ^ distance) <= 0: 
             # if the elevator and the request are NOT going in the same direction: 
-                is_elevator_going_right_way[i] = 0
+                is_elevator_eligible[i] = False
 
-        request.elevator = distance_to_elevator_from_origin.index(\
-                                min(distance_to_elevator_from_origin))
+        possible_elevators = []
+        
+        for eligibility, elevator in zip(is_elevator_eligible, self.elevators):
+            if eligibility and elevator.total_distance_all_requests < 20:
+                possible_elevators.append(elevator)
+        
+        if possible_elevators:
+            elevator_ids = []
+            distances = []
+            for elevator in possible_elevators:
+                elevator_ids.append(elevator.id_num)
+                distances.append(abs(elevator.current_floor - request.origin))
+
+            request.elevator = elevator_ids[distances.index(min(distances))]
+
+        else: 
+            request.elevator = 1
+
+        self.elevators[request.elevator].total_distance_all_requests += \
+                    abs(request.destination - request.origin) + \
+                    abs(self.elevators[request.elevator].current_floor - request.origin)
         self.active_requests.append(request)
 
     def _elevator_at_destination(self, elevator):
-        pass
+        if elevator.relative_destination == 0:
+            pass
 
-    def _move_elevator(self, elevator):
+    def _move_elevator_as_necessary(self, elevator):
         if elevator.relative_destination > 0: 
             elevator.current_floor += 1
+            elevator.relative_destination -= 1
         elif elevator.relative_destination < 0:
             elevator.current_floor -= 1
+            elevator.relative_destination += 1
+
+
 
 
 

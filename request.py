@@ -6,4 +6,8 @@ class Request(object):
         self.elevator = -1 # Changes from -1 when an elevator is assigned
 
     def __repr__(self):
-        return "(Request: {}, {})".format(self.origin, self.destination)
+        return '\n(Request\n'\
+                'floors: {}, {}\n'\
+                'elevator: {}\n'\
+                'relative_destination: {}\n'\
+                .format(self.origin, self.destination, self.elevator, self.relative_destination)
