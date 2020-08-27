@@ -1,3 +1,7 @@
+'''
+TODO: handle active_requests after assignment
+'''
+
 from elevator import Elevator
 from request import Request
 
@@ -25,7 +29,7 @@ class System(object):
         # TODO: stuff
 
         '''
-        TODO: move elevators, open doors, and close doors as appropriate
+        TODO: open doors, and close doors as appropriate
         TODO: check each active request for completion and clear as appropriate
         '''
 
@@ -40,19 +44,19 @@ class System(object):
         This function takes a request as an input and assigns that request to an elevator
         
         At a more technical level, it checks each elevator for whether that elevator 
-            is appropriate for this request, chooses the closest elevator going the 
-            right way AND without too much distance to cover before satisfying the 
-            newest request. 
-        '''
-        '''
-        TODO: assign requests more evenly across elevators
+            is appropriate for this request. Of the appropriate elvators it chooses
+            the closest one. If there are no appropriate elevators, it chooses
+            the elevator with the least distance to go before it has satisfied all
+            its requests. 
+
+            The requests are then assigned a request.elevator value other than -1
+            and the request is appended to active_requests.
         '''
         distance_to_elevator_from_origin = []
         for elevator in self.elevators:
             distance_to_elevator_from_origin.append(request.origin - elevator.current_floor)
 
         is_elevator_eligible = [True for elevator in self.elevators]
-
         # Eliminate elevators going in the wrong direction
         for i, distance in enumerate(distance_to_elevator_from_origin):
             if (request.relative_destination ^ distance) <= 0: 
@@ -60,7 +64,6 @@ class System(object):
                 is_elevator_eligible[i] = False
 
         possible_elevators = []
-        
         for eligibility, elevator in zip(is_elevator_eligible, self.elevators):
             if eligibility and elevator.total_distance_all_requests < 20:
                 possible_elevators.append(elevator)
@@ -75,7 +78,9 @@ class System(object):
             request.elevator = elevator_ids[distances.index(min(distances))]
 
         else: 
-            request.elevator = 1
+            total_distances = [elevator.total_distance_all_requests \
+                                for elevator in self.elevators]
+            request.elevator = self.elevators[total_distances.index(min(total_distances))].id_num
 
         self.elevators[request.elevator].total_distance_all_requests += \
                     abs(request.destination - request.origin) + \
@@ -83,14 +88,18 @@ class System(object):
         self.active_requests.append(request)
 
     def _elevator_at_destination(self, elevator):
-        if elevator.relative_destination == 0:
-            pass
+        # TODO: implement this function, which handles the elevators that are at their destination
+        pass
 
     def _move_elevator_as_necessary(self, elevator):
+        '''
+        This function moves elevators. elevators where
+                elevator.relative_destination == 0 have been filtered in System.tick()
+        '''
         if elevator.relative_destination > 0: 
             elevator.current_floor += 1
             elevator.relative_destination -= 1
-        elif elevator.relative_destination < 0:
+        else: 
             elevator.current_floor -= 1
             elevator.relative_destination += 1
 
