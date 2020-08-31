@@ -1,5 +1,7 @@
 '''
 TODO: handle active_requests after assignment
+TODO: assign one requst at a time to an elevator and leave active_requests
+    without assignemtn in System.active_requests
 '''
 
 from elevator import Elevator
@@ -88,8 +90,12 @@ class System(object):
         self.active_requests.append(request)
 
     def _elevator_at_destination(self, elevator):
-        # TODO: implement this function, which handles the elevators that are at their destination
-        pass
+        if elevator.doors_open == False: 
+            elevator.doors_open == True
+        elevator.door_ticks += 1
+        if elevator.door_ticks >= 4: 
+            elevator.doors = False
+            self._where_to(elevator)
 
     def _move_elevator_as_necessary(self, elevator):
         '''
@@ -102,6 +108,9 @@ class System(object):
         else: 
             elevator.current_floor -= 1
             elevator.relative_destination += 1
+
+    def _where_to(self, elevator):
+        pass
 
 
 
