@@ -1,1 +1,0 @@
-Creative Commons License referencing Github commits for completion date until official completion date is established
